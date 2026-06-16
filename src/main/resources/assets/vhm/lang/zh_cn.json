@@ -1,0 +1,8 @@
+{
+  "block.vhm.treadmill": "跑步机",
+  "item.vhm.treadmill": "跑步机",
+  "message.vhm.treadmill.manual": "跑步机：手动模式（上限 %s SU）",
+  "message.vhm.treadmill.automatic": "跑步机：自动模式",
+  "message.vhm.treadmill.mount": "右键登上跑步机，Shift 离开",
+  "message.vhm.treadmill.run": "按住 W 开始跑步发电"
+}

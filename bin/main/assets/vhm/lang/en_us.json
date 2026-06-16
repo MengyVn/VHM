@@ -1,0 +1,8 @@
+{
+  "block.vhm.treadmill": "Treadmill",
+  "item.vhm.treadmill": "Treadmill",
+  "message.vhm.treadmill.manual": "Treadmill: Manual mode (cap %s SU)",
+  "message.vhm.treadmill.automatic": "Treadmill: Automatic mode",
+  "message.vhm.treadmill.mount": "Right-click to mount, Shift to dismount",
+  "message.vhm.treadmill.run": "Hold W to run and generate stress"
+}

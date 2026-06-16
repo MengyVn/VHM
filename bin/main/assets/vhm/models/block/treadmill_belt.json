@@ -1,0 +1,17 @@
+{
+	"credit": "Treadmill Belt - Separate for UV Animation",
+	"textures": {
+		"belt": "create:block/belt",
+		"particle": "create:block/belt"
+	},
+	"elements": [
+		{
+			"name": "BeltSurface",
+			"from": [2, 4, 2],
+			"to": [14, 5, 14],
+			"faces": {
+				"up": {"uv": [2, 2, 14, 14], "texture": "#belt"}
+			}
+		}
+	]
+}

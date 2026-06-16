@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S",
+    "G",
+    "B"
+  ],
+  "key": {
+    "S": {
+      "item": "create:shaft"
+    },
+    "G": {
+      "item": "create:andesite_casing"
+    },
+    "B": {
+      "item": "create:belt_connector"
+    }
+  },
+  "result": {
+    "id": "vhm:treadmill",
+    "count": 1
+  }
+}
