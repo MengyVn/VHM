@@ -11,6 +11,7 @@ import net.minecraft.world.level.Level;
 
 public final class TreadmillMount {
     private static final String TAG = "VhmTreadmillPos";
+    private static final String BREAD_BOOST_TAG = "VhmTreadmillBreadBoost";
     private static BlockPos clientMountedPos;
 
     private TreadmillMount() {}
@@ -35,6 +36,33 @@ public final class TreadmillMount {
 
     public static void dismount(LivingEntity entity) {
         entity.getPersistentData().remove(TAG);
+    }
+
+    public static void grantBreadBoost(Villager villager, int ticks) {
+        CompoundTag data = villager.getPersistentData();
+        // 面包增益要记录在村民自己身上，这样下机或退出重进后都不会丢
+        data.putInt(BREAD_BOOST_TAG, Math.max(getBreadBoostTicks(villager), ticks));
+    }
+
+    public static int getBreadBoostTicks(Villager villager) {
+        CompoundTag data = villager.getPersistentData();
+        return data.contains(BREAD_BOOST_TAG) ? data.getInt(BREAD_BOOST_TAG) : 0;
+    }
+
+    public static void setBreadBoostTicks(Villager villager, int ticks) {
+        CompoundTag data = villager.getPersistentData();
+        if (ticks > 0) {
+            data.putInt(BREAD_BOOST_TAG, ticks);
+        } else {
+            data.remove(BREAD_BOOST_TAG);
+        }
+    }
+
+    public static void tickBreadBoost(Villager villager) {
+        int ticks = getBreadBoostTicks(villager);
+        if (ticks > 0) {
+            setBreadBoostTicks(villager, ticks - 1);
+        }
     }
 
     public static boolean isMounted(Player player) {
