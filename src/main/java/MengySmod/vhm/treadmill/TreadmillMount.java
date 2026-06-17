@@ -12,6 +12,7 @@ import net.minecraft.world.level.Level;
 public final class TreadmillMount {
     private static final String TAG = "VhmTreadmillPos";
     private static final String BREAD_BOOST_TAG = "VhmTreadmillBreadBoost";
+    private static final String RELEASE_COOLDOWN_TAG = "VhmTreadmillReleaseCooldown";
     private static BlockPos clientMountedPos;
 
     private TreadmillMount() {}
@@ -62,6 +63,32 @@ public final class TreadmillMount {
         int ticks = getBreadBoostTicks(villager);
         if (ticks > 0) {
             setBreadBoostTicks(villager, ticks - 1);
+        }
+    }
+
+    public static void grantReleaseCooldown(Villager villager, int ticks) {
+        CompoundTag data = villager.getPersistentData();
+        data.putInt(RELEASE_COOLDOWN_TAG, Math.max(getReleaseCooldownTicks(villager), ticks));
+    }
+
+    public static int getReleaseCooldownTicks(Villager villager) {
+        CompoundTag data = villager.getPersistentData();
+        return data.contains(RELEASE_COOLDOWN_TAG) ? data.getInt(RELEASE_COOLDOWN_TAG) : 0;
+    }
+
+    public static void setReleaseCooldownTicks(Villager villager, int ticks) {
+        CompoundTag data = villager.getPersistentData();
+        if (ticks > 0) {
+            data.putInt(RELEASE_COOLDOWN_TAG, ticks);
+        } else {
+            data.remove(RELEASE_COOLDOWN_TAG);
+        }
+    }
+
+    public static void tickReleaseCooldown(Villager villager) {
+        int ticks = getReleaseCooldownTicks(villager);
+        if (ticks > 0) {
+            setReleaseCooldownTicks(villager, ticks - 1);
         }
     }
 
@@ -126,6 +153,7 @@ public final class TreadmillMount {
             player.refreshDimensions();
         } else if (entity instanceof Villager villager) {
             villager.setNoAi(false);
+            grantReleaseCooldown(villager, 10);
         }
     }
 

@@ -41,6 +41,8 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private static final double BELT_MAX = 14 / 16.0;
     private static final double BELT_TOP = 4 / 16.0;
     private static final double STAND_ON_BELT = BELT_TOP + 0.02;
+    public static final double VILLAGER_AUTO_MOUNT_RADIUS = 1.2;
+    public static final double VILLAGER_RELEASE_DISTANCE = 1.8;
 
     private float stressMultiplier = 1f;
     private float beltSpeedMultiplier = 0f;
@@ -257,7 +259,7 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
         if (hasMountedPlayer()) {
             return;
         }
-        if (entity instanceof Villager villager && isEntityNearBelt(villager, 1.0)) {
+        if (entity instanceof Villager villager && isEntityNearBelt(villager, VILLAGER_AUTO_MOUNT_RADIUS)) {
             if (hasBoundVillager() && !isMountedVillager(villager)) {
                 return;
             }
@@ -278,7 +280,7 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
             TreadmillMount.release(villager);
             return;
         }
-        if (isEntityOnBelt(villager) || isEntityNearBelt(villager, 1.0)) {
+        if (isEntityOnBelt(villager) || isEntityNearBelt(villager, VILLAGER_AUTO_MOUNT_RADIUS)) {
             lockOnBelt(villager);
         }
     }
@@ -312,15 +314,20 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
             return false;
         }
         Direction facing = getBlockState().getValue(TreadmillBlock.HORIZONTAL_FACING);
-        Vec3 exit = beltCenter().add(facing.getStepX() * 0.85, 0.05, facing.getStepZ() * 0.85);
+        Direction releaseDirection = facing.getOpposite();
+        Vec3 exit = beltCenter().add(
+            releaseDirection.getStepX() * VILLAGER_RELEASE_DISTANCE,
+            0.05,
+            releaseDirection.getStepZ() * VILLAGER_RELEASE_DISTANCE
+        );
         AABB scanBox = beltBounds().inflate(1.25, 1.0, 1.25);
         for (Villager villager : level.getEntitiesOfClass(Villager.class, scanBox, this::isMountedVillager)) {
             TreadmillMount.release(villager);
             villager.teleportTo(exit.x, exit.y, exit.z);
             villager.setDeltaMovement(Vec3.ZERO);
             villager.hurtMarked = true;
-            villager.setYRot(facing.toYRot());
-            villager.setYHeadRot(facing.toYRot());
+            villager.setYRot(releaseDirection.toYRot());
+            villager.setYHeadRot(releaseDirection.toYRot());
             return true;
         }
         return false;
@@ -409,8 +416,17 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     }
 
     public boolean isEntityNearBelt(LivingEntity entity, double horizontalRadius) {
-        AABB belt = beltBounds().inflate(horizontalRadius, 0.6, horizontalRadius);
-        return belt.intersects(entity.getBoundingBox());
+        Vec3 beltCenter = beltCenter();
+        Vec3 entityCenter = entity.getBoundingBox().getCenter();
+        double dx = entityCenter.x - beltCenter.x;
+        double dz = entityCenter.z - beltCenter.z;
+        if (dx * dx + dz * dz > horizontalRadius * horizontalRadius) {
+            return false;
+        }
+
+        AABB belt = beltBounds();
+        AABB entityBox = entity.getBoundingBox();
+        return entityBox.maxY > belt.minY - 0.6 && entityBox.minY < belt.maxY + 0.6;
     }
 
     private Vec3 beltCenter() {

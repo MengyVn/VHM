@@ -10,18 +10,14 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-@EventBusSubscriber(modid = Vhm.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class VhmNetwork {
     private static final String VERSION = "1";
 
     private VhmNetwork() {}
 
-    @SubscribeEvent
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         event.registrar(VERSION)
             .playToServer(PlayerTreadmillStatePacket.TYPE, PlayerTreadmillStatePacket.STREAM_CODEC, (payload, context) ->
