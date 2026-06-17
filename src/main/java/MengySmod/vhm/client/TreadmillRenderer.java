@@ -84,10 +84,12 @@ public class TreadmillRenderer extends KineticBlockEntityRenderer<TreadmillBlock
                 float time = AnimationTickHolder.getRenderTime(be.getLevel());
                 float spriteSize = VhmSpriteShifts.TREADMILL_BELT.getTarget().getV1()
                     - VhmSpriteShifts.TREADMILL_BELT.getTarget().getV0();
+                // 传送带 UV 滚动动画
                 float effectiveSpeed = TreadmillBlockEntity.BASE_RPM * beltMultiplier;
                 double scroll = effectiveSpeed * time / (31.5 * 16);
                 scroll = scroll - Math.floor(scroll);
-                beltBuffer.shiftUVScrolling(VhmSpriteShifts.TREADMILL_BELT, (float) scroll * spriteSize);
+                // HACK：反转 UV 滚动动画方向
+                beltBuffer.shiftUVScrolling(VhmSpriteShifts.TREADMILL_BELT, -(float) scroll * spriteSize);
             }
             beltBuffer.light(light).renderInto(ms, buffer.getBuffer(RenderType.cutout()));
         } catch (Exception e) {

@@ -50,7 +50,7 @@ public class ClientAnimHandler {
         if (treadmill == null || !treadmill.isEntityOnBelt(villager)) {
             return;
         }
-
+        // TODO：玩家站上机器根据实施输入渲染腿部动画
         float beltMultiplier = treadmill.getBeltSpeedMultiplier();
         float baseRpm = TreadmillBlockEntity.BASE_RPM;
         float effectiveRpm = baseRpm * beltMultiplier;

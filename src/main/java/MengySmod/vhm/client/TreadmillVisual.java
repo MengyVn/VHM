@@ -89,7 +89,7 @@ public class TreadmillVisual extends KineticBlockEntityVisual<TreadmillBlockEnti
             beltInstance.setSpriteShift(VhmSpriteShifts.TREADMILL_BELT, 1f, 0.5f)
                 .position(getVisualPosition())
                 .rotation(rotation)
-                .speed(0, effectiveSpeed * MAGIC_SCROLL_MULTIPLIER)
+                .speed(0, -effectiveSpeed * MAGIC_SCROLL_MULTIPLIER)
                 .offset(0, 0f)
                 .colorRgb(RotatingInstance.colorFromBE(blockEntity))
                 .setChanged();

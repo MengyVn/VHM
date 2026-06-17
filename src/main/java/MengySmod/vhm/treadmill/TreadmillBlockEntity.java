@@ -373,12 +373,13 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
             updateGeneratedRotation();
         }
     }
-
+    // 根据实体的位置变化量（deltaMovement）自动计算腿部摆动
     private void lockOnBelt(LivingEntity entity) {
         Direction facing = getBlockState().getValue(TreadmillBlock.HORIZONTAL_FACING);
         Direction entityFacing = entity instanceof Player ? facing.getOpposite() : facing;
         Vec3 center = beltCenter();
         double standY = worldPosition.getY() + STAND_ON_BELT;
+        // FIXME：每 tick 传送 + 速度清零 → 原版认为玩家没有移动 → 腿部没有摆动动画
         entity.teleportTo(center.x, standY, center.z);
         entity.setDeltaMovement(Vec3.ZERO);
         entity.setYRot(entityFacing.toYRot());
