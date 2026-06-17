@@ -18,6 +18,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.npc.Villager;
@@ -42,7 +43,7 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private static final double STAND_ON_BELT = BELT_TOP + 0.02;
 
     private float stressMultiplier = 1f;
-    private float beltSpeedMultiplier = 1f;
+    private float beltSpeedMultiplier = 0f;
     private boolean manualMode;
     private float stressCap = MAX_STRESS_OUTPUT;
     private int breadBoostTicks;
@@ -334,9 +335,16 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     }
 
     private void refreshRunner() {
+        // 修复：状态变化时会 setChanged() 并向客户端发 block update，确保 beltSpeedMultiplier 真正刷新到客户端
+        if (level == null) {
+            return;
+        }
+
         boolean hadRunner = runnerPresent;
+        float previousBeltSpeedMultiplier = beltSpeedMultiplier;
+        float previousStressMultiplier = stressMultiplier;
         runnerPresent = false;
-        beltSpeedMultiplier = 1f;
+        beltSpeedMultiplier = 0f;
         stressMultiplier = 1f;
 
         for (Player player : level.players()) {
@@ -359,17 +367,19 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
                     runnerPresent = true;
                     boolean breadBoosted = breadBoostTicks > 0;
                     boolean scared = isVillagerScared(villager);
-                    float stageMultiplier = breadBoosted && scared ? 8f : 4f;
-                    if (breadBoosted || scared) {
-                        beltSpeedMultiplier = stageMultiplier;
-                        stressMultiplier = stageMultiplier;
-                    }
+                    // 村民上机后默认就应当作为跑者参与发电，否则会出现“村民被固定住但跑步机不转”的情况
+                    // beltSpeedMultiplier = 1f -> 0f 连锁反应，导致村民不会默认参与发电
+                    float stageMultiplier = breadBoosted && scared ? 8f : (breadBoosted || scared ? 4f : 1f);
+                    beltSpeedMultiplier = stageMultiplier;
+                    stressMultiplier = stageMultiplier;
                     break;
                 }
             }
         }
 
-        if (hadRunner != runnerPresent || runnerPresent) {
+        if (hadRunner != runnerPresent || previousBeltSpeedMultiplier != beltSpeedMultiplier || previousStressMultiplier != stressMultiplier) {
+            setChanged();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
             updateGeneratedRotation();
         }
     }
