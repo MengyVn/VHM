@@ -107,9 +107,10 @@ public class TreadmillEvents {
         if (treadmill == null) {
             return;
         }
+        // 村民面包增益
         if (event.getItemStack().is(Items.BREAD)) {
-            if (treadmill.supportsEntity(villager)) {
-                treadmill.grantBreadBoost(600);
+            if (treadmill.supportsEntity(villager)) {   // 是否站在跑步机上
+                treadmill.grantBreadBoost(12000);   // 面包增益时间，计算公示 1s = 20 Ticks
             }
             return;
         }

@@ -31,6 +31,8 @@ public class ClientAnimHandler {
             BlockPos mountedPos = TreadmillMount.getMountedPos(player);
             if (mountedPos != null) {
                 Minecraft minecraft = Minecraft.getInstance();
+                // 玩家站在跑步机上时，手动推进 walkAnimation，补上脚部摆动逻辑。
+                updateMountedPlayerWalkAnimation(player, minecraft.options.keyUp.isDown());
                 net.neoforged.neoforge.network.PacketDistributor.sendToServer(
                     new VhmNetwork.PlayerTreadmillStatePacket(
                         mountedPos,
@@ -50,7 +52,7 @@ public class ClientAnimHandler {
         if (treadmill == null || !treadmill.isEntityOnBelt(villager)) {
             return;
         }
-        // TODO：玩家站上机器根据实施输入渲染腿部动画
+        // TODO：玩家站上机器根据实施输入渲染腿部动画 [已完成]
         float beltMultiplier = treadmill.getBeltSpeedMultiplier();
         float baseRpm = TreadmillBlockEntity.BASE_RPM;
         float effectiveRpm = baseRpm * beltMultiplier;
@@ -59,6 +61,22 @@ public class ClientAnimHandler {
         float stepSpeed = effectiveRpm * 0.04f;
         villager.walkAnimation.setSpeed(swingAmount);
         villager.walkAnimation.update(stepSpeed, 0.8f);
+    }
+
+    private static void updateMountedPlayerWalkAnimation(Player player, boolean movingForward) {
+        if (!movingForward) {
+            player.walkAnimation.setSpeed(0f);
+            player.walkAnimation.update(0f, 0.8f);
+            return;
+        }
+
+        float stageMultiplier = player.isSprinting() ? 4f : 1f;
+        float effectiveRpm = TreadmillBlockEntity.BASE_RPM * stageMultiplier;
+
+        float swingAmount = Math.min(effectiveRpm * 0.08f, 1.4f);
+        float stepSpeed = effectiveRpm * 0.04f;
+        player.walkAnimation.setSpeed(swingAmount);
+        player.walkAnimation.update(stepSpeed, 0.8f);
     }
 
     private static void clampPlayerView(Player player) {
