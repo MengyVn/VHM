@@ -92,5 +92,5 @@ cd VHM
 ## 联系
 
 - **作者**：Mengy
-- **项目主页**：[GitHub Repository](https://github.com/MengyVn/VHM)
-- **问题反馈**：[Issues](https://github.com/MengyVn/VHM/issues)
+- **项目主页**：[GitHub Repository](https://github.com/MengyVn/VHM) | [Gitee Repository](https://gitee.com/xiaozhang-code-farmer/vhm.git)
+- **问题反馈**：[GitHub Issues](https://github.com/MengyVn/VHM/issues) | [Gitee Issues](https://gitee.com/xiaozhang-code-farmer/vhm/issues)
