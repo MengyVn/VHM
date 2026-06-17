@@ -41,6 +41,7 @@ public class TreadmillEvents {
         }
 
         if (entity instanceof Villager villager) {
+            TreadmillMount.tickBreadBoost(villager);
             BlockPos mountedPos = TreadmillMount.getMountedPos(villager);
             if (mountedPos != null) {
                 TreadmillBlockEntity mounted = TreadmillBlockEntity.at(entity.level(), mountedPos);
@@ -108,8 +109,9 @@ public class TreadmillEvents {
             return;
         }
         if (event.getItemStack().is(Items.BREAD)) {
-            if (treadmill.supportsEntity(villager)) {
-                treadmill.grantBreadBoost(600);
+            if (treadmill.supportsEntity(villager)) {   // 是否站在跑步机上
+                // 面包增益只记录到村民自己身上，这样下机或重进后都会保留。
+                TreadmillMount.grantBreadBoost(villager, 12000);   // 1s = 20 ticks
             }
             return;
         }

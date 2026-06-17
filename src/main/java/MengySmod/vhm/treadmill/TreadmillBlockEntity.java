@@ -46,7 +46,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private float beltSpeedMultiplier = 0f;
     private boolean manualMode;
     private float stressCap = MAX_STRESS_OUTPUT;
-    private int breadBoostTicks;
     private boolean runnerPresent;
     private boolean playerMovingForward;
     private boolean playerSprinting;
@@ -180,9 +179,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
             super.tick();
             if (level == null || level.isClientSide) {
                 return;
-            }
-            if (breadBoostTicks > 0) {
-                breadBoostTicks--;
             }
             refreshRunner();
         } catch (Exception e) {
@@ -365,7 +361,7 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
                 }
                 if (entity instanceof Villager villager) {
                     runnerPresent = true;
-                    boolean breadBoosted = breadBoostTicks > 0;
+                    boolean breadBoosted = TreadmillMount.getBreadBoostTicks(villager) > 0;
                     boolean scared = isVillagerScared(villager);
                     // 村民上机后默认就应当作为跑者参与发电，否则会出现“村民被固定住但跑步机不转”的情况
                     // beltSpeedMultiplier = 1f -> 0f 连锁反应，导致村民不会默认参与发电
@@ -430,7 +426,14 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     }
 
     public void grantBreadBoost(int ticks) {
-        breadBoostTicks = Math.max(breadBoostTicks, ticks);
+        // 兼容旧调用：实际增益现在写入村民自身数据，避免下机或退出后丢失
+        if (level == null) {
+            return;
+        }
+        AABB scanBox = beltBounds().inflate(1.25, 1.0, 1.25);
+        for (Villager villager : level.getEntitiesOfClass(Villager.class, scanBox, this::isMountedVillager)) {
+            TreadmillMount.grantBreadBoost(villager, ticks);
+        }
     }
 
     public boolean supportsEntity(LivingEntity entity) {
@@ -526,7 +529,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
         super.write(tag, registries, clientPacket);
         tag.putBoolean("ManualMode", manualMode);
         tag.putFloat("StressCap", stressCap);
-        tag.putInt("BreadBoost", breadBoostTicks);
         tag.putBoolean("RunnerPresent", runnerPresent);
         tag.putBoolean("PlayerMovingForward", playerMovingForward);
         tag.putBoolean("PlayerSprinting", playerSprinting);
@@ -539,7 +541,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
         super.read(tag, registries, clientPacket);
         manualMode = tag.getBoolean("ManualMode");
         stressCap = tag.contains("StressCap") ? tag.getFloat("StressCap") : MAX_STRESS_OUTPUT;
-        breadBoostTicks = tag.getInt("BreadBoost");
         runnerPresent = tag.getBoolean("RunnerPresent");
         playerMovingForward = tag.getBoolean("PlayerMovingForward");
         playerSprinting = tag.getBoolean("PlayerSprinting");
