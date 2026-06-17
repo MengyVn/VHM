@@ -11,9 +11,9 @@ VHM 是一个基于 NeoForge 与 Create 的 Minecraft 1.21.1 模组，核心内�
 
 ### 局内效果
 
-<img src="src/main/resources/portal/HappyVillage1.png" width="260" />
-<img src="src/main/resources/portal/HappyVillage2.png" width="260" />
-<img src="src/main/resources/portal/HappyVillage3.png" width="260" />
+<img src="portal/HappyVillage1.png" width="260" />
+<img src="portal/HappyVillage2.png" width="260" />
+<img src="portal/HappyVillage3.png" width="260" />
 
 ## 安装
 
