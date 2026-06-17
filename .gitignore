@@ -123,3 +123,10 @@ runs/
 
 # Documentation and reference files
 doc/
+
+# Do not ignore libs directory (Create mod dependencies, etc.)
+!libs/
+!libs/**/
+!libs/**/*.jar
+
+
