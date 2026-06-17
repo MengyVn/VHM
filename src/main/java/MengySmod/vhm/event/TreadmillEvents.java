@@ -42,6 +42,10 @@ public class TreadmillEvents {
 
         if (entity instanceof Villager villager) {
             TreadmillMount.tickBreadBoost(villager);
+            TreadmillMount.tickReleaseCooldown(villager);
+            if (TreadmillMount.getReleaseCooldownTicks(villager) > 0) {
+                return;
+            }
             BlockPos mountedPos = TreadmillMount.getMountedPos(villager);
             if (mountedPos != null) {
                 TreadmillBlockEntity mounted = TreadmillBlockEntity.at(entity.level(), mountedPos);
@@ -74,7 +78,7 @@ public class TreadmillEvents {
                 for (int z = -1; z <= 1; z++) {
                     BlockPos candidatePos = origin.offset(x, y, z);
                     TreadmillBlockEntity candidate = TreadmillBlockEntity.at(villager.level(), candidatePos);
-                    if (candidate == null || !candidate.isEntityNearBelt(villager, 1.0)) {
+                    if (candidate == null || !candidate.isEntityNearBelt(villager, TreadmillBlockEntity.VILLAGER_AUTO_MOUNT_RADIUS)) {
                         continue;
                     }
 

@@ -3,6 +3,7 @@ package MengySmod.vhm;
 import com.simibubi.create.api.stress.BlockStressValues;
 import com.mojang.logging.LogUtils;
 import MengySmod.vhm.event.TreadmillEvents;
+import MengySmod.vhm.network.VhmNetwork;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -32,6 +33,7 @@ public class Vhm {
         CREATIVE_MODE_TABS.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(VhmNetwork::registerPayloads);
 
         NeoForge.EVENT_BUS.register(TreadmillEvents.class);
     }
