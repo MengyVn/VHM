@@ -18,10 +18,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -531,23 +531,26 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private static boolean isVillagerScared(Villager villager) {
         AABB scareBox = villager.getBoundingBox().inflate(8);
         return !villager.level().getEntitiesOfClass(LivingEntity.class, scareBox,
-            e -> e instanceof Mob mob && mob.isAlive() && mob.getTarget() == villager && villager.hasLineOfSight(mob)).isEmpty();
+            e -> e instanceof Monster monster && monster.isAlive() && villager.hasLineOfSight(monster)).isEmpty();
     }
 
     private static float computeVillagerMultiplier(boolean breadBoosted, boolean drinkBoosted, boolean snackBoosted, boolean scared) {
+        float multiplier;
         if (drinkBoosted && snackBoosted) {
-            return 12f;
+            multiplier = 12f;
+        } else if (drinkBoosted || snackBoosted) {
+            multiplier = 6f;
+        } else if (breadBoosted) {
+            multiplier = 4f;
+        } else {
+            multiplier = 1f;
         }
-        if (drinkBoosted || snackBoosted) {
-            return 6f;
+
+        if (scared) {
+            multiplier *= 2f;
         }
-        if (breadBoosted && scared) {
-            return 8f;
-        }
-        if (breadBoosted || drinkBoosted || snackBoosted || scared) {
-            return 4f;
-        }
-        return 1f;
+
+        return multiplier;
     }
 
     @Override
