@@ -1,6 +1,7 @@
 package MengySmod.vhm.treadmill;
 
 import MengySmod.vhm.VhmEffects;
+import MengySmod.vhm.VhmSounds;
 import MengySmod.vhm.network.VhmNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.sounds.SoundSource;
 
 public final class TreadmillMount {
     private static final String TAG = "VhmTreadmillPos";
@@ -32,6 +34,9 @@ public final class TreadmillMount {
 
     public static void mount(LivingEntity entity, BlockPos pos) {
         entity.getPersistentData().putLong(TAG, pos.asLong());
+        if (!entity.level().isClientSide() && entity instanceof Villager villager) {
+            villager.level().playSound(null, villager.blockPosition(), VhmSounds.TREADMILL_VILLAGER_MOUNT.get(), SoundSource.NEUTRAL, 0.9f, 1.0f);
+        }
     }
 
     public static void dismount(Player player) {

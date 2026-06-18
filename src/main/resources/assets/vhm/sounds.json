@@ -1,0 +1,18 @@
+{
+  "treadmill_villager_mount": {
+    "sounds": [
+      {
+        "name": "vhm:treadmill_villager_mount",
+        "stream": false
+      }
+    ]
+  },
+  "treadmill_villager_feed": {
+    "sounds": [
+      {
+        "name": "vhm:treadmill_villager_feed",
+        "stream": false
+      }
+    ]
+  }
+}

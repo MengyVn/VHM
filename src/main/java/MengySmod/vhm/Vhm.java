@@ -35,6 +35,7 @@ public class Vhm {
         VhmBlocks.BLOCKS.register(modEventBus);
         VhmItems.ITEMS.register(modEventBus);
         VhmEffects.EFFECTS.register(modEventBus);
+        VhmSounds.SOUNDS.register(modEventBus);
         VhmBlockEntities.BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
 

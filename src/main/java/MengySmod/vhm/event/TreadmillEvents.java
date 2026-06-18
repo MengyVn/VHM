@@ -1,6 +1,7 @@
 package MengySmod.vhm.event;
 
 import MengySmod.vhm.VhmItems;
+import MengySmod.vhm.VhmSounds;
 import MengySmod.vhm.treadmill.TreadmillBlockEntity;
 import MengySmod.vhm.treadmill.TreadmillMount;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.sounds.SoundSource;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -125,6 +127,7 @@ public class TreadmillEvents {
         if (event.getItemStack().is(VhmItems.SPRITE_SIP.get())) {
             if (treadmill.supportsEntity(villager)) {
                 TreadmillMount.grantDrinkBoost(villager, 18000);
+                event.getLevel().playSound(null, villager.blockPosition(), VhmSounds.TREADMILL_VILLAGER_FEED.get(), SoundSource.NEUTRAL, 0.9f, 1.05f);
                 consume(player, event.getItemStack());
                 cancel(event);
             }
@@ -133,6 +136,7 @@ public class TreadmillEvents {
         if (event.getItemStack().is(VhmItems.CHOCO_LIZ.get())) {
             if (treadmill.supportsEntity(villager)) {
                 TreadmillMount.grantSnackBoost(villager, 18000);
+                event.getLevel().playSound(null, villager.blockPosition(), VhmSounds.TREADMILL_VILLAGER_FEED.get(), SoundSource.NEUTRAL, 0.9f, 0.95f);
                 consume(player, event.getItemStack());
                 cancel(event);
             }
