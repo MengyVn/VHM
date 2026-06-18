@@ -118,35 +118,20 @@ public class TreadmillBlock extends HorizontalKineticBlock implements IBE<Treadm
                     }
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
-                return InteractionResult.SUCCESS;
+                return InteractionResult.sidedSuccess(level.isClientSide);
             }
 
             if (player.isShiftKeyDown()) {
-                if (level.isClientSide) {
-                    return InteractionResult.SUCCESS;
-                }
-                be.toggleManualMode();
-                player.displayClientMessage(
-                    Component.translatable(
-                        be.isManualMode() ? "message.vhm.treadmill.manual" : "message.vhm.treadmill.automatic",
-                        (int) be.getStressCap()
-                    ),
-                    true
-                );
-                return InteractionResult.CONSUME;
-            }
-
-            if (!level.isClientSide && be.hasBoundVillager()) {
-                be.ejectBoundVillager();
-            }
-
-            if (be.tryMount(player)) {
-                if (!level.isClientSide) {
-                    player.displayClientMessage(Component.translatable("message.vhm.treadmill.run"), true);
+                if (!level.isClientSide && be.hasBoundVillager()) {
+                    be.ejectBoundVillager();
                 }
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }
-            return InteractionResult.PASS;
+
+            if (!level.isClientSide && be.tryMount(player)) {
+                player.displayClientMessage(Component.translatable("message.vhm.treadmill.run"), true);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
         });
     }
 
@@ -160,26 +145,7 @@ public class TreadmillBlock extends HorizontalKineticBlock implements IBE<Treadm
         InteractionHand hand,
         BlockHitResult hitResult
     ) {
-        if (stack.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-        if (!player.isShiftKeyDown()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-        return onBlockEntityUseItemOn(level, pos, be -> {
-            if (level.isClientSide) {
-                return ItemInteractionResult.SUCCESS;
-            }
-            be.toggleManualMode();
-            player.displayClientMessage(
-                Component.translatable(
-                    be.isManualMode() ? "message.vhm.treadmill.manual" : "message.vhm.treadmill.automatic",
-                    (int) be.getStressCap()
-                ),
-                true
-            );
-            return ItemInteractionResult.SUCCESS;
-        });
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

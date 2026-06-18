@@ -1,8 +1,16 @@
 {
   "block.vhm.treadmill": "Treadmill",
   "item.vhm.treadmill": "Treadmill",
-  "message.vhm.treadmill.manual": "Treadmill: Manual mode (cap %s SU)",
-  "message.vhm.treadmill.automatic": "Treadmill: Automatic mode",
-  "message.vhm.treadmill.mount": "Right-click to mount, Shift to dismount",
-  "message.vhm.treadmill.run": "Hold W to run and generate stress"
+  "item.vhm.sprite_sip": "Sprite Sip",
+  "item.vhm.choco_liz": "Choco Liz",
+  "item.vhm.cleansing_brush": "Cleansing Brush",
+  "effect.vhm.treadmill_bread_boost": "Bread Boost",
+  "effect.vhm.treadmill_drink_boost": "Sprite Boost",
+  "effect.vhm.treadmill_snack_boost": "Choco Liz Boost",
+  "message.vhm.treadmill.mount": "Shift + right-click to mount, Shift + right-click to dismount",
+  "message.vhm.treadmill.run": "Hold W to run and generate stress",
+  "message.vhm.treadmill.villager_effects": "Villager Effects",
+  "message.vhm.treadmill.no_effects": "No active effects",
+  "message.vhm.treadmill.effect_line": "%s: %s",
+  "message.vhm.treadmill.effect_level": "%s %s"
 }

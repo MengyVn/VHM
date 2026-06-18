@@ -23,12 +23,18 @@ public class Vhm {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TREADMILL_TAB = CREATIVE_MODE_TABS.register("treadmill_tab", () -> CreativeModeTab.builder()
         .title(Component.literal("机械动力:你跑不过我你信吗"))
         .icon(() -> VhmItems.TREADMILL.get().getDefaultInstance())
-        .displayItems((params, output) -> output.accept(VhmItems.TREADMILL.get()))
+        .displayItems((params, output) -> {
+            output.accept(VhmItems.TREADMILL.get());
+            output.accept(VhmItems.SPRITE_SIP.get());
+            output.accept(VhmItems.CHOCO_LIZ.get());
+            output.accept(VhmItems.CLEANSING_BRUSH.get());
+        })
         .build());
 
     public Vhm(IEventBus modEventBus) {
         VhmBlocks.BLOCKS.register(modEventBus);
         VhmItems.ITEMS.register(modEventBus);
+        VhmEffects.EFFECTS.register(modEventBus);
         VhmBlockEntities.BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
 

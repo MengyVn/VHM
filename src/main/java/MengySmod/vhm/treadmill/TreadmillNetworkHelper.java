@@ -74,16 +74,6 @@ public final class TreadmillNetworkHelper {
         return total;
     }
 
-    public static float applyManualCap(List<TreadmillBlockEntity> units, float rawTotalCapacity) {
-        float cap = Float.MAX_VALUE;
-        for (TreadmillBlockEntity unit : units) {
-            if (unit.isManualMode()) {
-                cap = Math.min(cap, unit.getStressCap());
-            }
-        }
-        return Math.min(rawTotalCapacity, cap);
-    }
-
     public static boolean isTreadmillState(BlockState state) {
         return state.is(VhmBlocks.TREADMILL);
     }

@@ -18,9 +18,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
@@ -46,8 +46,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
 
     private float stressMultiplier = 1f;
     private float beltSpeedMultiplier = 0f;
-    private boolean manualMode;
-    private float stressCap = MAX_STRESS_OUTPUT;
     private boolean runnerPresent;
     private boolean playerMovingForward;
     private boolean playerSprinting;
@@ -159,14 +157,8 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
                 return 0;
             }
             float localCap = getLocalStressCapacity();
-            float rawTotal = TreadmillNetworkHelper.networkTotalCapacity(cascade, networkRpm);
-            float cappedTotal = TreadmillNetworkHelper.applyManualCap(cascade, rawTotal);
-            if (rawTotal > 0 && cappedTotal < rawTotal) {
-                localCap *= cappedTotal / rawTotal;
-            }
             lastCapacityProvided = localCap;
-            LOGGER.trace("[Treadmill BE {}] Stress capacity: local={}, rawTotal={}, cappedTotal={}", 
-                worldPosition, localCap, rawTotal, cappedTotal);
+            LOGGER.trace("[Treadmill BE {}] Stress capacity: local={}, networkRpm={}", worldPosition, localCap, networkRpm);
             return localCap;
         } catch (Exception e) {
             LOGGER.error("[Treadmill BE {}] Error in calculateAddedStressCapacity", worldPosition, e);
@@ -369,10 +361,12 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
                 if (entity instanceof Villager villager) {
                     runnerPresent = true;
                     boolean breadBoosted = TreadmillMount.getBreadBoostTicks(villager) > 0;
+                    boolean drinkBoosted = TreadmillMount.getDrinkBoostTicks(villager) > 0;
+                    boolean snackBoosted = TreadmillMount.getSnackBoostTicks(villager) > 0;
                     boolean scared = isVillagerScared(villager);
                     // 村民上机后默认就应当作为跑者参与发电，否则会出现“村民被固定住但跑步机不转”的情况
                     // beltSpeedMultiplier = 1f -> 0f 连锁反应，导致村民不会默认参与发电
-                    float stageMultiplier = breadBoosted && scared ? 8f : (breadBoosted || scared ? 4f : 1f);
+                    float stageMultiplier = computeVillagerMultiplier(breadBoosted, drinkBoosted, snackBoosted, scared);
                     beltSpeedMultiplier = stageMultiplier;
                     stressMultiplier = stageMultiplier;
                     break;
@@ -452,28 +446,28 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
         }
     }
 
+    public void grantDrinkBoost(int ticks) {
+        if (level == null) {
+            return;
+        }
+        AABB scanBox = beltBounds().inflate(1.25, 1.0, 1.25);
+        for (Villager villager : level.getEntitiesOfClass(Villager.class, scanBox, this::isMountedVillager)) {
+            TreadmillMount.grantDrinkBoost(villager, ticks);
+        }
+    }
+
+    public void grantSnackBoost(int ticks) {
+        if (level == null) {
+            return;
+        }
+        AABB scanBox = beltBounds().inflate(1.25, 1.0, 1.25);
+        for (Villager villager : level.getEntitiesOfClass(Villager.class, scanBox, this::isMountedVillager)) {
+            TreadmillMount.grantSnackBoost(villager, ticks);
+        }
+    }
+
     public boolean supportsEntity(LivingEntity entity) {
         return isEntityOnBelt(entity);
-    }
-
-    public boolean isManualMode() {
-        return manualMode;
-    }
-
-    public float getStressCap() {
-        return stressCap;
-    }
-
-    public void toggleManualMode() {
-        manualMode = !manualMode;
-        updateGeneratedRotation();
-        setChanged();
-    }
-
-    public void adjustStressCap(float delta) {
-        stressCap = Math.max(64f, Math.min(MAX_STRESS_OUTPUT * TreadmillNetworkHelper.MAX_CASCADE, stressCap + delta));
-        updateGeneratedRotation();
-        setChanged();
     }
 
     public AABB beltBounds() {
@@ -537,14 +531,28 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private static boolean isVillagerScared(Villager villager) {
         AABB scareBox = villager.getBoundingBox().inflate(8);
         return !villager.level().getEntitiesOfClass(LivingEntity.class, scareBox,
-            e -> e instanceof Enemy && e.isAlive() && villager.hasLineOfSight(e)).isEmpty();
+            e -> e instanceof Mob mob && mob.isAlive() && mob.getTarget() == villager && villager.hasLineOfSight(mob)).isEmpty();
+    }
+
+    private static float computeVillagerMultiplier(boolean breadBoosted, boolean drinkBoosted, boolean snackBoosted, boolean scared) {
+        if (drinkBoosted && snackBoosted) {
+            return 12f;
+        }
+        if (drinkBoosted || snackBoosted) {
+            return 6f;
+        }
+        if (breadBoosted && scared) {
+            return 8f;
+        }
+        if (breadBoosted || drinkBoosted || snackBoosted || scared) {
+            return 4f;
+        }
+        return 1f;
     }
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
-        tag.putBoolean("ManualMode", manualMode);
-        tag.putFloat("StressCap", stressCap);
         tag.putBoolean("RunnerPresent", runnerPresent);
         tag.putBoolean("PlayerMovingForward", playerMovingForward);
         tag.putBoolean("PlayerSprinting", playerSprinting);
@@ -555,8 +563,6 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        manualMode = tag.getBoolean("ManualMode");
-        stressCap = tag.contains("StressCap") ? tag.getFloat("StressCap") : MAX_STRESS_OUTPUT;
         runnerPresent = tag.getBoolean("RunnerPresent");
         playerMovingForward = tag.getBoolean("PlayerMovingForward");
         playerSprinting = tag.getBoolean("PlayerSprinting");
