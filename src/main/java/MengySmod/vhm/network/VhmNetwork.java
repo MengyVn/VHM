@@ -5,13 +5,13 @@ import MengySmod.vhm.treadmill.TreadmillBlockEntity;
 import MengySmod.vhm.treadmill.TreadmillMount;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class VhmNetwork {
     private static final String VERSION = "1";
@@ -69,7 +69,7 @@ public final class VhmNetwork {
             return TYPE;
         }
 
-        private void handle(net.minecraft.server.level.ServerPlayer player) {
+        private void handle(ServerPlayer player) {
             if (!TreadmillMount.isMounted(player)) {
                 return;
             }

@@ -59,8 +59,7 @@ public class TreadmillRenderer extends KineticBlockEntityRenderer<TreadmillBlock
             BlockPos pos = be.getBlockPos();
             float time = AnimationTickHolder.getRenderTime(be.getLevel());
             float offset = getRotationOffsetForPosition(be, pos, axis);
-            float fixedRpm = TreadmillBlockEntity.BASE_RPM;
-            float angle = ((time * fixedRpm * 3f / 10 + offset) % 360) / 180 * (float) Math.PI;
+            float angle = ((time * TreadmillBlockEntity.BASE_RPM * 3f / 10 + offset) % 360) / 180 * (float) Math.PI;
 
             // Use shaft's own BlockState instead of treadmill's BlockState
             BlockState shaftState = shaft(axis);
