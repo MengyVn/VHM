@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    "S S",
+    " N "
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:cocoa_beans"
+    },
+    "S": {
+      "item": "minecraft:snowball"
+    },
+    "N": {
+      "item": "minecraft:cookie"
+    }
+  },
+  "result": {
+    "id": "vhm:choco_liz",
+    "count": 1
+  }
+}

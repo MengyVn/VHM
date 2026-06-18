@@ -1,5 +1,6 @@
 package MengySmod.vhm.event;
 
+import MengySmod.vhm.VhmItems;
 import MengySmod.vhm.treadmill.TreadmillBlockEntity;
 import MengySmod.vhm.treadmill.TreadmillMount;
 import net.minecraft.core.BlockPos;
@@ -7,7 +8,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -41,7 +44,7 @@ public class TreadmillEvents {
         }
 
         if (entity instanceof Villager villager) {
-            TreadmillMount.tickBreadBoost(villager);
+            TreadmillMount.tickBoosts(villager);
             TreadmillMount.tickReleaseCooldown(villager);
             if (TreadmillMount.getReleaseCooldownTicks(villager) > 0) {
                 return;
@@ -119,10 +122,46 @@ public class TreadmillEvents {
             }
             return;
         }
+        if (event.getItemStack().is(VhmItems.SPRITE_SIP.get())) {
+            if (treadmill.supportsEntity(villager)) {
+                TreadmillMount.grantDrinkBoost(villager, 18000);
+                consume(player, event.getItemStack());
+                cancel(event);
+            }
+            return;
+        }
+        if (event.getItemStack().is(VhmItems.CHOCO_LIZ.get())) {
+            if (treadmill.supportsEntity(villager)) {
+                TreadmillMount.grantSnackBoost(villager, 18000);
+                consume(player, event.getItemStack());
+                cancel(event);
+            }
+            return;
+        }
+        if (event.getItemStack().is(VhmItems.CLEANSING_BRUSH.get())) {
+            TreadmillMount.clearAccelerationBoosts(villager);
+            for (MobEffectInstance effect : villager.getActiveEffects()) {
+                villager.removeEffect(effect.getEffect());
+            }
+            consume(player, event.getItemStack());
+            cancel(event);
+            return;
+        }
         if (treadmill.isMountedVillager(villager)) {
             treadmill.ejectBoundVillager();
             event.setCancellationResult(InteractionResult.sidedSuccess(false));
             event.setCanceled(true);
         }
+    }
+
+    private static void consume(Player player, ItemStack stack) {
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+    }
+
+    private static void cancel(PlayerInteractEvent.EntityInteract event) {
+        event.setCancellationResult(InteractionResult.sidedSuccess(false));
+        event.setCanceled(true);
     }
 }

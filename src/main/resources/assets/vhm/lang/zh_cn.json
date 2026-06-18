@@ -1,8 +1,16 @@
 {
   "block.vhm.treadmill": "跑步机",
   "item.vhm.treadmill": "跑步机",
-  "message.vhm.treadmill.manual": "跑步机：手动模式（上限 %s SU）",
-  "message.vhm.treadmill.automatic": "跑步机：自动模式",
-  "message.vhm.treadmill.mount": "右键登上跑步机，Shift 离开",
-  "message.vhm.treadmill.run": "按住 W 开始跑步发电"
+  "item.vhm.sprite_sip": "雪碧饮",
+  "item.vhm.choco_liz": "巧乐滋",
+  "item.vhm.cleansing_brush": "净化刷",
+  "effect.vhm.treadmill_bread_boost": "面包加速",
+  "effect.vhm.treadmill_drink_boost": "雪碧加速",
+  "effect.vhm.treadmill_snack_boost": "巧乐滋加速",
+  "message.vhm.treadmill.mount": "Shift + 右键登上跑步机，Shift + 右键离开",
+  "message.vhm.treadmill.run": "按住 W 开始跑步发电",
+  "message.vhm.treadmill.villager_effects": "村民效果",
+  "message.vhm.treadmill.no_effects": "当前没有效果",
+  "message.vhm.treadmill.effect_line": "%s：%s",
+  "message.vhm.treadmill.effect_level": "%s %s"
 }

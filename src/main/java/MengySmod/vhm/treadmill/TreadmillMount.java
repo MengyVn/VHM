@@ -1,8 +1,12 @@
 package MengySmod.vhm.treadmill;
 
+import MengySmod.vhm.VhmEffects;
 import MengySmod.vhm.network.VhmNetwork;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
@@ -11,7 +15,9 @@ import net.minecraft.world.level.Level;
 
 public final class TreadmillMount {
     private static final String TAG = "VhmTreadmillPos";
-    private static final String BREAD_BOOST_TAG = "VhmTreadmillBreadBoost";
+    public static final String BREAD_BOOST_TAG = "VhmTreadmillBreadBoost";
+    public static final String DRINK_BOOST_TAG = "VhmTreadmillDrinkBoost";
+    public static final String SNACK_BOOST_TAG = "VhmTreadmillSnackBoost";
     private static final String RELEASE_COOLDOWN_TAG = "VhmTreadmillReleaseCooldown";
     private static BlockPos clientMountedPos;
 
@@ -40,30 +46,69 @@ public final class TreadmillMount {
     }
 
     public static void grantBreadBoost(Villager villager, int ticks) {
-        CompoundTag data = villager.getPersistentData();
-        // 面包增益要记录在村民自己身上，这样下机或退出重进后都不会丢
-        data.putInt(BREAD_BOOST_TAG, Math.max(getBreadBoostTicks(villager), ticks));
+        addBoostTicks(villager, BREAD_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
     }
 
     public static int getBreadBoostTicks(Villager villager) {
-        CompoundTag data = villager.getPersistentData();
-        return data.contains(BREAD_BOOST_TAG) ? data.getInt(BREAD_BOOST_TAG) : 0;
+        return getBoostTicks(villager, BREAD_BOOST_TAG);
     }
 
     public static void setBreadBoostTicks(Villager villager, int ticks) {
-        CompoundTag data = villager.getPersistentData();
-        if (ticks > 0) {
-            data.putInt(BREAD_BOOST_TAG, ticks);
-        } else {
-            data.remove(BREAD_BOOST_TAG);
-        }
+        setBoostTicks(villager, BREAD_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
     }
 
     public static void tickBreadBoost(Villager villager) {
-        int ticks = getBreadBoostTicks(villager);
-        if (ticks > 0) {
-            setBreadBoostTicks(villager, ticks - 1);
-        }
+        tickBoosts(villager);
+    }
+
+    public static void grantDrinkBoost(Villager villager, int ticks) {
+        addBoostTicks(villager, DRINK_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
+    }
+
+    public static int getDrinkBoostTicks(Villager villager) {
+        return getBoostTicks(villager, DRINK_BOOST_TAG);
+    }
+
+    public static void setDrinkBoostTicks(Villager villager, int ticks) {
+        setBoostTicks(villager, DRINK_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
+    }
+
+    public static void tickDrinkBoost(Villager villager) {
+        tickBoosts(villager);
+    }
+
+    public static void grantSnackBoost(Villager villager, int ticks) {
+        addBoostTicks(villager, SNACK_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
+    }
+
+    public static int getSnackBoostTicks(Villager villager) {
+        return getBoostTicks(villager, SNACK_BOOST_TAG);
+    }
+
+    public static void setSnackBoostTicks(Villager villager, int ticks) {
+        setBoostTicks(villager, SNACK_BOOST_TAG, ticks);
+        syncBoostEffects(villager);
+    }
+
+    public static void tickSnackBoost(Villager villager) {
+        tickBoosts(villager);
+    }
+
+    public static void clearAccelerationBoosts(Villager villager) {
+        setBreadBoostTicks(villager, 0);
+        setDrinkBoostTicks(villager, 0);
+        setSnackBoostTicks(villager, 0);
+    }
+
+    public static boolean isTrackedBoostEffect(MobEffect effect) {
+        return effect == VhmEffects.TREADMILL_BREAD_BOOST.get()
+            || effect == VhmEffects.TREADMILL_DRINK_BOOST.get()
+            || effect == VhmEffects.TREADMILL_SNACK_BOOST.get();
     }
 
     public static void grantReleaseCooldown(Villager villager, int ticks) {
@@ -89,6 +134,68 @@ public final class TreadmillMount {
         int ticks = getReleaseCooldownTicks(villager);
         if (ticks > 0) {
             setReleaseCooldownTicks(villager, ticks - 1);
+        }
+    }
+
+    public static void tickBoosts(Villager villager) {
+        int breadTicks = getBreadBoostTicks(villager);
+        int drinkTicks = getDrinkBoostTicks(villager);
+        int snackTicks = getSnackBoostTicks(villager);
+
+        if (drinkTicks > 0 || snackTicks > 0) {
+            if (drinkTicks > 0 && snackTicks > 0) {
+                if (drinkTicks <= snackTicks) {
+                    drinkTicks--;
+                } else {
+                    snackTicks--;
+                }
+            } else if (drinkTicks > 0) {
+                drinkTicks--;
+            } else {
+                snackTicks--;
+            }
+        } else if (breadTicks > 0) {
+            breadTicks--;
+        }
+
+        setBoostTicks(villager, BREAD_BOOST_TAG, breadTicks);
+        setBoostTicks(villager, DRINK_BOOST_TAG, drinkTicks);
+        setBoostTicks(villager, SNACK_BOOST_TAG, snackTicks);
+        syncBoostEffects(villager);
+    }
+
+    private static void addBoostTicks(Villager villager, String tag, int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
+        setBoostTicks(villager, tag, getBoostTicks(villager, tag) + ticks);
+    }
+
+    private static int getBoostTicks(Villager villager, String tag) {
+        CompoundTag data = villager.getPersistentData();
+        return data.contains(tag) ? data.getInt(tag) : 0;
+    }
+
+    private static void setBoostTicks(Villager villager, String tag, int ticks) {
+        CompoundTag data = villager.getPersistentData();
+        if (ticks > 0) {
+            data.putInt(tag, ticks);
+        } else {
+            data.remove(tag);
+        }
+    }
+
+    private static void syncBoostEffects(Villager villager) {
+        syncEffect(villager, VhmEffects.TREADMILL_BREAD_BOOST, getBreadBoostTicks(villager));
+        syncEffect(villager, VhmEffects.TREADMILL_DRINK_BOOST, getDrinkBoostTicks(villager));
+        syncEffect(villager, VhmEffects.TREADMILL_SNACK_BOOST, getSnackBoostTicks(villager));
+    }
+
+    private static void syncEffect(Villager villager, Holder<MobEffect> effect, int ticks) {
+        if (ticks > 0) {
+            villager.addEffect(new MobEffectInstance(effect, ticks, 0, false, false, false));
+        } else {
+            villager.removeEffect(effect);
         }
     }
 
