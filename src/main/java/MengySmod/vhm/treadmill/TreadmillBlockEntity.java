@@ -18,9 +18,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
@@ -537,7 +537,9 @@ public class TreadmillBlockEntity extends GeneratingKineticBlockEntity implement
     private static boolean isVillagerScared(Villager villager) {
         AABB scareBox = villager.getBoundingBox().inflate(8);
         return !villager.level().getEntitiesOfClass(LivingEntity.class, scareBox,
-            e -> e instanceof Enemy && e.isAlive() && villager.hasLineOfSight(e)).isEmpty();
+            // 对村民敌对实体非所有敌对实体
+                // 满足条件：该实体必须是一个怪物/生物、该怪物必须是活着的、该怪物的攻击目标必须正好是这个村民、村民必须能直接看到该怪物（中间没有被方块遮挡）
+            e -> e instanceof Mob mob && mob.isAlive() && mob.getTarget() == villager && villager.hasLineOfSight(mob)).isEmpty();
     }
 
     @Override
