@@ -198,7 +198,7 @@ public final class TreadmillMount {
 
     private static void syncEffect(Villager villager, Holder<MobEffect> effect, int ticks) {
         if (ticks > 0) {
-            villager.addEffect(new MobEffectInstance(effect, ticks, 0, false, false, false));
+            villager.addEffect(new MobEffectInstance(effect, ticks, 0, false, true, true));
         } else {
             villager.removeEffect(effect);
         }
