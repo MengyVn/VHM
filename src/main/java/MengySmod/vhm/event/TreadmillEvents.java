@@ -4,6 +4,7 @@ import MengySmod.vhm.VhmItems;
 import MengySmod.vhm.VhmSounds;
 import MengySmod.vhm.treadmill.TreadmillBlockEntity;
 import MengySmod.vhm.treadmill.TreadmillMount;
+import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,6 +19,10 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 public class TreadmillEvents {
+    private static final int AUTO_BREAD_BOOST_CAP = 12000;
+    private static final int AUTO_DRINK_BOOST_CAP = 18000;
+    private static final int AUTO_SNACK_BOOST_CAP = 18000;
+
     private TreadmillEvents() {}
 
     @SubscribeEvent
@@ -110,6 +115,11 @@ public class TreadmillEvents {
         if (!(event.getTarget() instanceof Villager villager)) {
             return;
         }
+        boolean automated = player instanceof DeployerFakePlayer;
+        if (automated && event.getItemStack().isEmpty()) {
+            cancel(event);
+            return;
+        }
         TreadmillBlockEntity treadmill = TreadmillBlockEntity.at(event.getLevel(), villager.blockPosition());
         if (treadmill == null) {
             treadmill = TreadmillBlockEntity.at(event.getLevel(), villager.blockPosition().below());
@@ -119,14 +129,32 @@ public class TreadmillEvents {
         }
         if (event.getItemStack().is(Items.BREAD)) {
             if (treadmill.supportsEntity(villager)) {   // 是否站在跑步机上
-                // 面包增益只记录到村民自己身上，这样下机或重进后都会保留。
-                TreadmillMount.grantBreadBoost(villager, 12000);   // 1s = 20 ticks
+                if (automated) {
+                    if (TreadmillMount.getBreadBoostTicks(villager) >= AUTO_BREAD_BOOST_CAP) {
+                        cancel(event);
+                        return;
+                    }
+                    TreadmillMount.grantBreadBoost(villager, 12000);
+                    consume(player, event.getItemStack());
+                    cancel(event);
+                } else {
+                    // 面包增益只记录到村民自己身上，这样下机或重进后都会保留。
+                    TreadmillMount.grantBreadBoost(villager, 12000);   // 1s = 20 ticks
+                }
             }
             return;
         }
         if (event.getItemStack().is(VhmItems.SPRITE_SIP.get())) {
             if (treadmill.supportsEntity(villager)) {
-                TreadmillMount.grantDrinkBoost(villager, 18000);
+                if (automated) {
+                    if (TreadmillMount.getDrinkBoostTicks(villager) >= AUTO_DRINK_BOOST_CAP) {
+                        cancel(event);
+                        return;
+                    }
+                    TreadmillMount.grantDrinkBoost(villager, 18000);
+                } else {
+                    TreadmillMount.grantDrinkBoost(villager, 18000);
+                }
                 event.getLevel().playSound(null, villager.blockPosition(), VhmSounds.TREADMILL_VILLAGER_FEED.get(), SoundSource.NEUTRAL, 0.9f, 1.05f);
                 consume(player, event.getItemStack());
                 cancel(event);
@@ -135,7 +163,15 @@ public class TreadmillEvents {
         }
         if (event.getItemStack().is(VhmItems.CHOCO_LIZ.get())) {
             if (treadmill.supportsEntity(villager)) {
-                TreadmillMount.grantSnackBoost(villager, 18000);
+                if (automated) {
+                    if (TreadmillMount.getSnackBoostTicks(villager) >= AUTO_SNACK_BOOST_CAP) {
+                        cancel(event);
+                        return;
+                    }
+                    TreadmillMount.grantSnackBoost(villager, 18000);
+                } else {
+                    TreadmillMount.grantSnackBoost(villager, 18000);
+                }
                 event.getLevel().playSound(null, villager.blockPosition(), VhmSounds.TREADMILL_VILLAGER_FEED.get(), SoundSource.NEUTRAL, 0.9f, 0.95f);
                 consume(player, event.getItemStack());
                 cancel(event);
@@ -152,6 +188,11 @@ public class TreadmillEvents {
             return;
         }
         if (treadmill.isMountedVillager(villager)) {
+            if (automated) {
+                event.setCancellationResult(InteractionResult.sidedSuccess(false));
+                event.setCanceled(true);
+                return;
+            }
             treadmill.ejectBoundVillager();
             event.setCancellationResult(InteractionResult.sidedSuccess(false));
             event.setCanceled(true);
