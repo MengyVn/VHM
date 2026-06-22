@@ -4,6 +4,7 @@ import MengySmod.vhm.VhmItems;
 import MengySmod.vhm.VhmSounds;
 import MengySmod.vhm.treadmill.TreadmillBlockEntity;
 import MengySmod.vhm.treadmill.TreadmillMount;
+import MengySmod.vhm.treadmill.VillagerFoodFollowHelper;
 import com.simibubi.create.content.kinetics.deployer.DeployerFakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -53,27 +54,41 @@ public class TreadmillEvents {
         if (entity instanceof Villager villager) {
             TreadmillMount.tickBoosts(villager);
             TreadmillMount.tickReleaseCooldown(villager);
-            if (TreadmillMount.getReleaseCooldownTicks(villager) > 0) {
-                return;
-            }
             BlockPos mountedPos = TreadmillMount.getMountedPos(villager);
             if (mountedPos != null) {
                 TreadmillBlockEntity mounted = TreadmillBlockEntity.at(entity.level(), mountedPos);
                 if (mounted != null) {
                     if (mounted.hasMountedPlayer()) {
                         TreadmillMount.release(villager);
+                    } else {
+                        mounted.handleBoundVillager(villager);
                         return;
                     }
-                    mounted.handleBoundVillager(villager);
-                    return;
                 }
                 TreadmillMount.dismount(villager);
             }
 
             TreadmillBlockEntity treadmill = findNearbyTreadmill(villager);
-            if (treadmill != null && !treadmill.hasBoundVillager() && !treadmill.hasMountedPlayer()) {
-                TreadmillMount.mount(villager, treadmill.getBlockPos());
-                treadmill.handleBoundVillager(villager);
+            if (treadmill != null) {
+                if (treadmill.isMountedVillager(villager)) {
+                    treadmill.handleBoundVillager(villager);
+                    return;
+                }
+
+                if ((treadmill.hasBoundVillager() || treadmill.hasMountedPlayer()) && treadmill.isEntityOnBelt(villager)) {
+                    treadmill.repelForeignVillager(villager);
+                    return;
+                }
+
+                if (TreadmillMount.getReleaseCooldownTicks(villager) <= 0 && !treadmill.hasBoundVillager() && !treadmill.hasMountedPlayer()) {
+                    TreadmillMount.mount(villager, treadmill.getBlockPos());
+                    treadmill.handleBoundVillager(villager);
+                    return;
+                }
+            }
+
+            if (VillagerFoodFollowHelper.tick(villager)) {
+                return;
             }
         }
     }
